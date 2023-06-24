@@ -104,6 +104,27 @@ export const makeChatsSocket = (config: SocketConfig) => {
 	}
 
 	const onWhatsApp = async(...jids: string[]) => {
+
+		/*
+		// we could use the commented implementation instead of the current implementation used below
+		// The commented implementation allow addresing an array of contacts
+
+		//Nw implementation
+		const query = { tag: 'contact', attrs: {} }
+		const list = jids.map((jid) => ({
+			tag: 'user',
+			attrs: {},
+			content: [{
+				tag: 'contact',
+				attrs: {},
+				content: jid,
+			}],
+		}))
+		const results = await interactiveQuery(list, query)
+		//End of new immplementation
+		*/
+
+		//current implementation
 		const results = await interactiveQuery(
 			[
 				{
@@ -120,7 +141,8 @@ export const makeChatsSocket = (config: SocketConfig) => {
 			],
 			{ tag: 'contact', attrs: { } }
 		)
-
+		//End of current implementation
+		
 		return results.map(user => {
 			const contact = getBinaryNodeChild(user, 'contact')
 			return { exists: contact?.attrs.type === 'in', jid: user.attrs.jid }
