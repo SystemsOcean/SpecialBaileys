@@ -44,8 +44,8 @@ export const getUrlInfo = async(
 	try {
 		//New update
 		// retries
-		//const retries = 0
-		//const maxRetry = 5
+		const retries = 0
+		const maxRetry = 5
 		//End update
 
 		const { getLinkPreview } = await import('link-preview-js')
@@ -57,25 +57,25 @@ export const getUrlInfo = async(
 		const info = await getLinkPreview(previewLink, {
 			...opts.fetchOpts,
 			//new added
-			//followRedirects: 'manual',
-			//handleRedirects: (baseURL: string, forwardedURL: string) => {
-			//	const urlObj = new URL(baseURL)
-			//	const forwardedURLObj = new URL(forwardedURL)
-			//	if(retries >= maxRetry) {
-			//		return false
-			//	}
+			followRedirects: 'manual',
+			handleRedirects: (baseURL: string, forwardedURL: string) => {
+				const urlObj = new URL(baseURL)
+				const forwardedURLObj = new URL(forwardedURL)
+				if(retries >= maxRetry) {
+					return false
+				}
 //
-			//	if(
-			//		forwardedURLObj.hostname === urlObj.hostname
-			//		|| forwardedURLObj.hostname === 'www.' + urlObj.hostname
-			//		|| 'www.' + forwardedURLObj.hostname === urlObj.hostname
-			//	) {
-			//		retries + 1
-			//		return true
-			//	} else {
-			//		return false
-			//	}
-			//},
+				if(
+					forwardedURLObj.hostname === urlObj.hostname
+					|| forwardedURLObj.hostname === 'www.' + urlObj.hostname
+					|| 'www.' + forwardedURLObj.hostname === urlObj.hostname
+				) {
+					retries + 1
+					return true
+				} else {
+					return false
+				}
+			},
 			//end
 			headers: opts.fetchOpts as {}
 		})

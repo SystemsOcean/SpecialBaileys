@@ -575,6 +575,7 @@ export const generateWAMessage = async(
 	content: AnyMessageContent,
 	options: MessageGenerationOptions,
 ) => {
+
 	// ensure msg ID is with every log
 	options.logger = options?.logger?.child({ msgId: options.messageId })
 	return generateWAMessageFromContent(

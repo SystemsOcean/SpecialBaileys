@@ -550,6 +550,21 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 			signalRepository,
 			logger,
 		)
+
+			////Debug
+			//const debug = true
+			//if(debug) {
+			//	const fs = require('fs');
+			//	const filePath = 'c:\\rawdatainput.txt';
+			//	const newInput = `\n\n${JSON.stringify(msg)}`;
+			//	fs.appendFile(filePath, newInput, (err) => {
+			//	if (err) {
+			//	} else {
+			//	}
+			//	});
+			//}
+			//End 
+
 		if(shouldIgnoreJid(msg.key.remoteJid!)) {
 			logger.debug({ key: msg.key }, 'ignored message')
 			await sendMessageAck(node)
@@ -701,6 +716,36 @@ export const makeMessagesRecvSocket = (config: SocketConfig) => {
 				.catch(err => onUnexpectedError(err, identifier))
 		}
 	}
+
+	//ws.onmessage = function(event) {
+  	//	const eventData = event.data.toString();
+  	//	try {
+  	//	  const eventDataParsed = JSON.parse(eventData);
+	//	  //if (eventDataParsed.type === 'CB:message' || 
+	//	  //eventDataParsed.type === 'CB:call' || 
+	//	  //eventDataParsed.type === 'CB:receipt' || 
+	//	  //eventDataParsed.type === 'CB:notification' || 
+	//	  //eventDataParsed.type === 'CB:ack,class:message' || 
+	//	  //eventDataParsed.type === 'CB:call' || 
+	//	  //eventDataParsed.type === 'CB:connection.update' ) return
+	//	//Debug
+	//	const debug = false
+	//	if(debug) {
+	//		const fs = require('fs');
+	//		const filePath = 'c:\\rawdatainput.txt';
+	//		const newInput = `\nNode\n${JSON.stringify(eventDataParsed)}`;
+	//	
+	//		fs.appendFile(filePath, newInput, (err) => {
+	//		if (err) {
+	//		} else {
+	//		}
+	//		});
+	//	}
+	//	//End 
+	//	  
+  	//	} catch (error) {
+	//	}
+	//}
 
 	// recv a message
 	ws.on('CB:message', (node: BinaryNode) => {
