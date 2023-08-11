@@ -5,7 +5,7 @@ import { proto } from '../../WAProto'
 import { DEFAULT_CONNECTION_CONFIG } from '../Defaults'
 import type makeMDSocket from '../Socket'
 import type { BaileysEventEmitter, Chat, ConnectionState, Contact, GroupMetadata, PresenceData, WAMessage, WAMessageCursor, WAMessageKey } from '../Types'
-import { toNumber, updateMessageWithReaction, updateMessageWithReceipt } from '../Utils'
+import { md5, toNumber, updateMessageWithReaction, updateMessageWithReceipt } from '../Utils'
 import { jidNormalizedUser } from '../WABinary'
 import makeOrderedDictionary from './make-ordered-dictionary'
 
@@ -21,12 +21,13 @@ export const waMessageID = (m: WAMessage) => m.key.id || ''
 export type BaileysInMemoryStoreConfig = {
 	chatKey?: Comparable<Chat, string>
 	logger?: Logger
+	socket?: WASocket
 }
 
 const makeMessagesDictionary = () => makeOrderedDictionary(waMessageID)
 
 export default (
-	{ logger: _logger, chatKey }: BaileysInMemoryStoreConfig
+	{ logger: _logger, chatKey, socket }: BaileysInMemoryStoreConfig
 ) => {
 	const logger = _logger || DEFAULT_CONNECTION_CONFIG.logger.child({ stream: 'in-mem-store' })
 	chatKey = chatKey || waChatKey(true)
@@ -111,15 +112,34 @@ export default (
 			contactsUpsert(contacts)
 		})
 		
-		ev.on('contacts.update', updates => {
+		ev.on('contacts.update', async updates => {
 			for(const update of updates) {
+				let contact: Contact
 				if(contacts[update.id!]) {
-					Object.assign(contacts[update.id!], update)
+					contact = contacts[update.id!]
 				} else {
-					logger.debug({ update }, 'got update for non-existant contact')
+					const contactHashes = await Promise.all(Object.keys(contacts).map(async a => {
+						return (await md5(Buffer.from(a + 'WA_ADD_NOTIF', 'utf8'))).toString('base64').slice(0, 3)
+					}))
+					contact = contacts[contactHashes.find(a => a === update.id) || '']
 				}
+
+				if(update.imgUrl === 'changed' || update.imgUrl === 'removed') {
+					if(contact) {
+						if(update.imgUrl === 'changed') {
+							contact.imgUrl = socket ? await socket?.profilePictureUrl(contact.id) : undefined
+						} else {
+							delete contact.imgUrl
+						}
+					} else {
+						return logger.debug({ update }, 'got update for non-existant contact')
+					}
+				}
+
+				Object.assign(contacts[update.id!], contact)
 			}
 		})
+		
 		ev.on('chats.upsert', newChats => {
 			chats.upsert(...newChats)
 		})
